@@ -37,6 +37,10 @@ AudioBuffer::~AudioBuffer() {
     m_buffer = NULL;
 }
 
+uint32_t Audio::getLastGain(){
+    return _lastGain;
+}
+
 void AudioBuffer::setBufsize(int ram, int psram) {
     if (ram > -1) // -1 == default / no change
         m_buffSizeRAM = ram;
@@ -4148,11 +4152,13 @@ bool Audio::playSample(int16_t sample[2]) {
     //-------------------------------------------
 
     uint32_t s32 = Gain(sample); // vosample2lume;
-
+    
     if(m_f_internalDAC) {
         s32 += 0x80008000;
     }
 
+    _lastGain = s32;
+    
     esp_err_t err = i2s_write((i2s_port_t) m_i2s_num, (const char*) &s32, sizeof(uint32_t), &m_i2s_bytesWritten, 1000);
     if(err != ESP_OK) {
         log_e("ESP32 Errorcode %i", err);
