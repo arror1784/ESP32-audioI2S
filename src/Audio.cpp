@@ -37,10 +37,6 @@ AudioBuffer::~AudioBuffer() {
     m_buffer = NULL;
 }
 
-uint32_t Audio::getLastGain(){
-    return _lastGain;
-}
-
 void AudioBuffer::setBufsize(int ram, int psram) {
     if (ram > -1) // -1 == default / no change
         m_buffSizeRAM = ram;
@@ -4490,4 +4486,8 @@ int16_t* Audio::IIR_filterChain2(int16_t iir_in[2], bool clear){  // Infinite Im
     iir_out[RIGHTCHANNEL] = (int16_t) outSample[RIGHTCHANNEL];
 
     return iir_out;
+}
+
+uint32_t Audio::getLastGain(){
+    return _lastGain;
 }
