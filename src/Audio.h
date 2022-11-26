@@ -207,6 +207,8 @@ public:
                  CODEC_OGG_FLAC, CODEC_OGG_OPUS};
 
 private:
+    void UTF8toASCII(char* str);
+    bool latinToUTF8(char* buff, size_t bufflen);
     void setDefaults(); // free buffers and set defaults
     void initInBuff();
 #ifndef AUDIO_NO_SD_FS
@@ -219,6 +221,7 @@ private:
     void compute_audioCurrentTime(int bd);
     void printDecodeError(int r);
     void showID3Tag(const char* tag, const char* val);
+    void unicode2utf8(char* buff, uint32_t len);
     int  read_MP3_Header(uint8_t* data, size_t len);
     bool setSampleRate(uint32_t hz);
     bool setBitsPerSample(int bits);
