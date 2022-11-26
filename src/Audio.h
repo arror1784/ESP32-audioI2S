@@ -207,17 +207,11 @@ public:
                  CODEC_OGG_FLAC, CODEC_OGG_OPUS};
 
 private:
-    void UTF8toASCII(char* str);
-    bool latinToUTF8(char* buff, size_t bufflen);
-    void httpPrint(const char* url);
     void setDefaults(); // free buffers and set defaults
     void initInBuff();
 #ifndef AUDIO_NO_SD_FS
     void processLocalFile();
 #endif // AUDIO_NO_SD_FS
-    void processWebStream();
-    void processPlayListData();
-    void processM3U8entries(uint8_t nrOfEntries = 0, uint32_t seqNr = 0, uint8_t pos = 0, uint16_t targetDuration = 0);
     bool STfromEXTINF(char* str);
     void showCodecParams();
     int  findNextSync(uint8_t* data, size_t len);
@@ -225,12 +219,7 @@ private:
     void compute_audioCurrentTime(int bd);
     void printDecodeError(int r);
     void showID3Tag(const char* tag, const char* val);
-    void unicode2utf8(char* buff, uint32_t len);
-    int  read_WAV_Header(uint8_t* data, size_t len);
-    int  read_FLAC_Header(uint8_t *data, size_t len);
     int  read_MP3_Header(uint8_t* data, size_t len);
-    int  read_M4A_Header(uint8_t* data, size_t len);
-    int  read_OGG_Header(uint8_t *data, size_t len);
     bool setSampleRate(uint32_t hz);
     bool setBitsPerSample(int bits);
     bool setChannels(int channels);
