@@ -780,6 +780,114 @@ void Audio::showID3Tag(const char* tag, const char* value){
     latinToUTF8(chbuf, sizeof(chbuf));
     if(chbuf[0] != 0) if(audio_id3data) audio_id3data(chbuf);
 }
+
+//---------------------------------------------------------------------------------------------------------------------
+void Audio::unicode2utf8(char* buff, uint32_t len){
+    // converts unicode in UTF-8, buff contains the string to be converted up to len
+    // range U+1 ... U+FFFF
+    uint8_t* tmpbuff = (uint8_t*)malloc(len * 2);
+    if(!tmpbuff) {log_e("out of memory"); return;}
+    bool bitorder = false;
+    uint16_t j = 0;
+    uint16_t k = 0;
+    uint16_t m = 0;
+    uint8_t uni_h = 0;
+    uint8_t uni_l = 0;
+
+    while(m < len - 1) {
+        if((buff[m] == 0xFE) && (buff[m + 1] == 0xFF)) {
+            bitorder = true;
+            j = m + 2;
+        }  // LSB/MSB
+        if((buff[m] == 0xFF) && (buff[m + 1] == 0xFE)) {
+            bitorder = false;
+            j = m + 2;
+        }  // MSB/LSB
+        m++;
+    } // seek for last bitorder
+    m = 0;
+    if(j > 0) {
+        for(k = j; k < len; k += 2) {
+            if(bitorder == true) {
+                uni_h = (uint8_t)buff[k];
+                uni_l = (uint8_t)buff[k + 1];
+            }
+            else {
+                uni_l = (uint8_t)buff[k];
+                uni_h = (uint8_t)buff[k + 1];
+            }
+
+            uint16_t uni_hl = ((uni_h << 8) | uni_l);
+
+            if (uni_hl < 0X80){
+                tmpbuff[m] = uni_l;
+                m++;
+            }
+            else if (uni_hl < 0X800) {
+                tmpbuff[m]= ((uni_hl >> 6) | 0XC0);
+                m++;
+                tmpbuff[m] =((uni_hl & 0X3F) | 0X80);
+                m++;
+            }
+            else {
+                tmpbuff[m] = ((uni_hl >> 12) | 0XE0);
+                m++;
+                tmpbuff[m] = (((uni_hl >> 6) & 0X3F) | 0X80);
+                m++;
+                tmpbuff[m] = ((uni_hl & 0X3F) | 0X80);
+                m++;
+            }
+        }
+    }
+    buff[m] = 0;
+    memcpy(buff, tmpbuff, m);
+    free(tmpbuff);
+}
+//---------------------------------------------------------------------------------------------------------------------
+bool Audio::latinToUTF8(char* buff, size_t bufflen){
+    // most stations send  strings in UTF-8 but a few sends in latin. To standardize this, all latin strings are
+    // converted to UTF-8. If UTF-8 is already present, nothing is done and true is returned.
+    // A conversion to UTF-8 extends the string. Therefore it is necessary to know the buffer size. If the converted
+    // string does not fit into the buffer, false is returned
+    // utf8 bytelength: >=0xF0 3 bytes, >=0xE0 2 bytes, >=0xC0 1 byte, e.g. e293ab is ⓫
+
+    uint16_t pos = 0;
+    uint8_t  ext_bytes = 0;
+    uint16_t len = strlen(buff);
+    uint8_t  c;
+
+    while(pos < len){
+        c = buff[pos];
+        if(c >= 0xC2) {    // is UTF8 char
+            pos++;
+            if(c >= 0xC0 && buff[pos] < 0x80) {ext_bytes++; pos++;}
+            if(c >= 0xE0 && buff[pos] < 0x80) {ext_bytes++; pos++;}
+            if(c >= 0xF0 && buff[pos] < 0x80) {ext_bytes++; pos++;}
+        }
+        else pos++;
+    }
+    if(!ext_bytes) return true; // is UTF-8, do nothing
+
+    pos = 0;
+
+    while(buff[pos] != 0){
+        len = strlen(buff);
+        if(buff[pos] >= 0x80 && buff[pos+1] < 0x80){       // is not UTF8, is latin?
+            for(int i = len+1; i > pos; i--){
+                buff[i+1] = buff[i];
+            }
+            uint8_t c = buff[pos];
+            buff[pos++] = 0xc0 | ((c >> 6) & 0x1f);      // 2+1+5 bits
+            buff[pos++] = 0x80 | ((char)c & 0x3f);       // 1+1+6 bits
+        }
+        pos++;
+        if(pos > bufflen -3){
+            buff[bufflen -1] = '\0';
+            return false; // do not overwrite
+        }
+    }
+    return true;
+}
 //---------------------------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------
 int Audio::read_MP3_Header(uint8_t *data, size_t len) {
