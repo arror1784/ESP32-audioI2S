@@ -1234,6 +1234,7 @@ void Audio::loop() {
     if(m_f_localfile) {                                      // Playing file fron SPIFFS or SD?
         processLocalFile();
     }
+#endif // AUDIO_NO_SD_FS
     return;
 }
 //---------------------------------------------------------------------------------------------------------------------
