@@ -2195,7 +2195,8 @@ bool Audio::playSample(int16_t sample[2]) {
         sample[LEFTCHANNEL]  = ((sample[LEFTCHANNEL]  & 0xff) -128) << 8;
         sample[RIGHTCHANNEL] = ((sample[RIGHTCHANNEL] & 0xff) -128) << 8;
     }
-
+    _lastGain = sample[LEFTCHANNEL];
+    
     sample[LEFTCHANNEL]  = sample[LEFTCHANNEL]  >> 1; // half Vin so we can boost up to 6dB in filters
     sample[RIGHTCHANNEL] = sample[RIGHTCHANNEL] >> 1;
 
@@ -2209,10 +2210,7 @@ bool Audio::playSample(int16_t sample[2]) {
     
     if(m_f_internalDAC) {
         s32 += 0x80008000;
-    }
-
-    _lastGain = s32;
-    
+    }    
     esp_err_t err = i2s_write((i2s_port_t) m_i2s_num, (const char*) &s32, sizeof(uint32_t), &m_i2s_bytesWritten, 1000);
     if(err != ESP_OK) {
         log_e("ESP32 Errorcode %i", err);
@@ -2546,6 +2544,6 @@ int16_t* Audio::IIR_filterChain2(int16_t iir_in[2], bool clear){  // Infinite Im
     return iir_out;
 }
 
-uint32_t Audio::getLastGain(){
+int16_t Audio::getLastGain(){
     return _lastGain;
 }

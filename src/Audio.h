@@ -159,7 +159,7 @@ public:
     Audio(bool internalDAC = false, uint8_t channelEnabled = 3, uint8_t i2sPort = I2S_NUM_0); // #99
     ~Audio();
 
-    uint32_t getLastGain();
+    int16_t getLastGain();
 
     void setBufsize(int rambuf_sz, int psrambuf_sz);
     bool connecttohost(const char* host, const char* user = "", const char* pwd = "");
@@ -372,7 +372,7 @@ private:
     }
 
 private:
-    uint32_t _lastGain = 0;
+    int16_t _lastGain = 0;
 
     const char *codecname[9] = {"unknown", "WAV", "MP3", "AAC", "M4A", "FLAC", "OGG", "OGG FLAC", "OPUS"};
     enum : int { APLL_AUTO = -1, APLL_ENABLE = 1, APLL_DISABLE = 0 };
